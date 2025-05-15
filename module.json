@@ -9,6 +9,6 @@
   "scripts": ["reactive.js"],
   "system": "dnd5e",
   "type": "module",
-  "manifest": "https://raw.githubusercontent.com/tendocronth/reactive-escape/main/module.json",
-  "download": "https://github.com/tendocronth/reactive-escape/releases/download/v1.0.0/reactive-escape.zip"
+  "manifest": "https://raw.githubusercontent.com/Tendocronth/Opp-reactive-escape/main/module.json",
+  "download": "https://github.com/Tendocronth/Opp-reactive-escape/releases/download/v1.0.0/reactive-escape.zip"
 }
