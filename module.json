@@ -1,0 +1,14 @@
+{
+  "name": "reactive-escape",
+  "title": "Reactive Escape Hook",
+  "description": "Opportunity attack logic replacement using Dex vs Passive Perception.",
+  "version": "1.0.0",
+  "authors": [{ "name": "Your Name" }],
+  "minimumCoreVersion": "11",
+  "compatibleCoreVersion": "12",
+  "scripts": ["reactive.js"],
+  "system": "*",
+  "id": "reactive-escape",
+  "manifest": "https://YOUR-HOSTING-URL/module.json",
+  "download": "https://YOUR-HOSTING-URL/reactive-escape.zip"
+}
