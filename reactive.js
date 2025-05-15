@@ -1,39 +1,50 @@
-Hooks.on("canvasReady", () => {
-    console.log("? Reactive Escape Hook activated");
-    let moveTimers = {};
+Hooks.once("ready", () => {
+  let moveTimers = {};
 
-    Hooks.on("updateToken", async (tokenDoc, updateData) => {
-        if (!game.combat) return;
-        if (!("x" in updateData || "y" in updateData)) return;
+  Hooks.on("updateToken", async (tokenDoc, updateData) => {
+    if (!game.combat) return;
+    if (!("x" in updateData || "y" in updateData)) return;
 
-        const tokenId = tokenDoc.id;
-        if (moveTimers[tokenId]) clearTimeout(moveTimers[tokenId]);
+    const tokenId = tokenDoc.id;
 
-        moveTimers[tokenId] = setTimeout(async () => {
-            const movedToken = canvas.tokens.get(tokenId);
-            if (!movedToken) return;
+    // Debounce token move
+    if (moveTimers[tokenId]) clearTimeout(moveTimers[tokenId]);
 
-            const hostiles = canvas.tokens.placeables.filter(t => {
-                if (!t.actor || t.id === tokenId || t.document.disposition !== -1) return false;
+    moveTimers[tokenId] = setTimeout(async () => {
+      const movedToken = canvas.tokens.get(tokenId);
+      if (!movedToken) return;
 
-                const beforeDist = MidiQOL.getDistanceSimple(t.center, {
-                    x: tokenDoc._previous?.x ?? tokenDoc.x,
-                    y: tokenDoc._previous?.y ?? tokenDoc.y
-                });
+      const movedActor = movedToken.actor;
+      const dex = movedActor.system.abilities.dex.value;
 
-                const afterDist = MidiQOL.getDistance(t, movedToken);
+      const hostiles = canvas.tokens.placeables.filter(t => {
+        if (!t.actor || t.id === tokenId || t.document.disposition !== -1) return false;
 
-                return beforeDist <= 5 && afterDist > 5;
-            });
+        const beforeDistance = MidiQOL.getDistanceSimple(t.center, {
+          x: tokenDoc._previous?.x ?? tokenDoc.x,
+          y: tokenDoc._previous?.y ?? tokenDoc.y
+        });
 
-            if (hostiles.length === 0) return;
+        const afterDistance = MidiQOL.getDistance(t, movedToken);
+        return beforeDistance <= 5 && afterDistance > 5;
+      });
 
-            const hostileNames = hostiles.map(t => t.name).join(", ");
-            ChatMessage.create({
-                content: `?? ${movedToken.name} left melee range of: **${hostileNames}**.`,
-                whisper: ChatMessage.getWhisperRecipients("GM").map(u => u.id)
-            });
+      if (hostiles.length === 0) return;
 
-        }, 200);
-    });
+      for (const hostile of hostiles) {
+        const pp = hostile.actor.system.attributes?.perception?.passive ?? 10;
+        const result = dex >= pp ? "avoids" : "triggers";
+
+        ChatMessage.create({
+          content: `
+            <b>Reactive Escape Check:</b><br>
+            <b>${movedToken.name}</b> Dex: <code>${dex}</code><br>
+            <b>${hostile.name}</b> PP: <code>${pp}</code><br>
+            Result: <b>${movedToken.name}</b> ${result} an opportunity attack.
+          `,
+          whisper: ChatMessage.getWhisperRecipients("GM").map(u => u.id)
+        });
+      }
+    }, 300); // delay after movement ends
+  });
 });
